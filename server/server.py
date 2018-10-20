@@ -3,6 +3,7 @@ from flask import Flask
 import flask_cors
 
 import pytesseract
+import numpy as np
 import cv2
 
 app = Flask(__name__)
@@ -19,16 +20,18 @@ def read_image():
     data = flask.request.form
     files = flask.request.files
 
-    if 'text' not in data:
+    if 'word' not in data:
         return flask.json.jsonify({'error': 'text not specified'})
     if 'file' not in files:
         return flask.json.jsonify({'error': 'No file'})
 
-    text = data['text']
+    text = data['word']
     image_file = files['file']
-    img = cv2.imread(image_file)
+    image_file = np.fromstring(image_file.read(), np.uint8)
+    image_file = cv2.imdecode(image_file, cv2.IMREAD_COLOR)
+    # img = cv2.imread(image_file)
 
-    result = pytesseract.image_to_data(img, nice=999,
+    result = pytesseract.image_to_data(image_file, nice=999,
                                        output_type=pytesseract.Output.DICT)
 
     boxes = []
@@ -44,6 +47,4 @@ def read_image():
 
 
 if __name__ == '__main__':
-    # This is used when running locally. Gunicorn is used to run the
-    # application on Google App Engine. See entrypoint in app.yaml.
     app.run(host='127.0.0.1', port=8080, debug=True)
