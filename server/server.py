@@ -30,7 +30,6 @@ def read_image():
 
     result = pytesseract.image_to_data(img, nice=999,
                                        output_type=pytesseract.Output.DICT)
-    print(pytesseract.image_to_data(img, nice=999))
 
     boxes = []
     for i in range(len(result['text'])):
