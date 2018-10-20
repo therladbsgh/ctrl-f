@@ -20,4 +20,4 @@ def read_image(text, image_file):
     return boxes
 
 
-print(read_image('dog', 'math.png'))
+print(read_image('dog', 'text.jpg'))

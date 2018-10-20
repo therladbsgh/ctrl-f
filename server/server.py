@@ -28,7 +28,13 @@ def read_image():
     text = data['word']
     image_file = files['file']
     image_file = np.fromstring(image_file.read(), np.uint8)
-    image_file = cv2.imdecode(image_file, cv2.IMREAD_COLOR)
+    image_file = cv2.imdecode(image_file, 0)
+    # cv2.imwrite('idk.png', image_file)
+    # image_file = cv2.adaptiveThreshold(image_file, 255,
+    #                                   cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+    #                                   cv2.THRESH_BINARY, 11, 2)
+
+    cv2.imwrite('idk2.png', image_file)
     # img = cv2.imread(image_file)
 
     result = pytesseract.image_to_data(image_file, nice=999,
@@ -36,7 +42,7 @@ def read_image():
 
     boxes = []
     for i in range(len(result['text'])):
-        if text in result['text'][i]:
+        if str.upper(text) in str.upper(result['text'][i]):
             boxes.append({
                 'left': result['left'][i],
                 'top': result['top'][i],
