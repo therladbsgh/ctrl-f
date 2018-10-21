@@ -98,14 +98,15 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
     }
 
     private void processTextRecognitionResult(FirebaseVisionText texts) {
-<<<<<<< HEAD
-        String toSearch = "Sodium";
-=======
+
+        String toSearch = textInputField.getText().toString().toLowerCase();
+
+
         if (textInputField.getText() != null) {
             Log.e("122222222222", textInputField.getText().toString());
         }
 
->>>>>>> d226600c15e1ccd40192b1ec64a840c3f7224c76
+
         List<FirebaseVisionText.TextBlock> blocks = texts.getTextBlocks();
         if (blocks.size() == 0) {
             return;
@@ -117,19 +118,15 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
                 List<FirebaseVisionText.Element> elements = lines.get(j).getElements();
                 for (int k = 0; k < elements.size(); k++) {
                     FirebaseVisionText.Element ele = elements.get(k);
-                    if (ele.getText().equals(toSearch)) {
+                    if (ele.getText().toLowerCase().equals(toSearch) || ele.getText().toLowerCase().contains(toSearch)) {
                         GraphicOverlay.Graphic textGraphic = new TextGraphic(graphicOverlay, ele);
                         graphicOverlay.add(textGraphic);
                     }
                 }
             }
         }
-<<<<<<< HEAD
 
-        // Sodium
-//        Log.e("ALSFHHIUFHWOIF", "AFHUWHOIFHQWOIHFOIQWFJOIQWFJOJ");
         this.processingPreview.setIsActive(false);
-=======
->>>>>>> d226600c15e1ccd40192b1ec64a840c3f7224c76
+
     }
 }

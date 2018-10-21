@@ -67,9 +67,14 @@ public class TextGraphic extends Graphic {
 
         // Draws the bounding box around the TextBlock.
         RectF rect = new RectF(element.getBoundingBox());
+
+        // shifting up so that the box fits the text.
+        rect.top -= 100;
+        rect.bottom -= 100;
+        
         canvas.drawRect(rect, rectPaint);
 
         // Renders the text at the bottom of the box.
-        canvas.drawText("", rect.left, rect.bottom - 5, textPaint);
+        canvas.drawText("", rect.left, rect.bottom, textPaint);
     }
 }
