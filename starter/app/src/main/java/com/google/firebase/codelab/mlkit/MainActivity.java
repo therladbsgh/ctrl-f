@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
             ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.CAMERA},
-                REQUEST_CODE_CAMERA_PERMISSION);
+                1);
         }
     }
 

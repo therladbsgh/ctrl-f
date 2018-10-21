@@ -1,19 +1,24 @@
 package com.google.firebase.codelab.mlkit;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.SurfaceHolder;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.text.FirebaseVisionText;
@@ -27,15 +32,28 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 public class OnlineAnalyzer implements Camera.PreviewCallback {
     private GraphicOverlay graphicOverlay;
+    private BitmapFactory.Options options;
+    private Canary processingPreview;
 
-    OnlineAnalyzer(GraphicOverlay graphicOverlay) {
+    OnlineAnalyzer(GraphicOverlay graphicOverlay, Canary processingPreview) {
         this.graphicOverlay = graphicOverlay;
+        options = new BitmapFactory.Options();
+        options.inPurgeable = true;
+        options.inInputShareable = true;
+        this.processingPreview = processingPreview;
     }
 
     public void onPreviewFrame(byte[] data, Camera camera) {
+//        try {
+//            TimeUnit.SECONDS.sleep(1);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         Camera.Parameters parameters=camera.getParameters();
         int width = parameters.getPreviewSize().width;
         int height = parameters.getPreviewSize().height;
@@ -43,8 +61,13 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         yuv.compressToJpeg(new Rect(0, 0, width, height), 50, out);
         byte[] bytes = out.toByteArray();
-        final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-        runTextRecognition(bitmap);
+        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+        // bitmap = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth() / 2, bitmap.getHeight() / 2, true);
+        Matrix matrix = new Matrix();
+        matrix.postRotate(90);
+        Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
+        runTextRecognition(rotatedBitmap);
     }
 
     private void runTextRecognition(Bitmap bitmapImage) {
@@ -57,6 +80,7 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
                             @Override
                             public void onSuccess(FirebaseVisionText texts) {
                                 processTextRecognitionResult(texts);
+                                processingPreview.setIsActive(false);
                             }
                         })
                 .addOnFailureListener(
@@ -65,9 +89,9 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
                             public void onFailure(@NonNull Exception e) {
                                 // Task failed with an exception
                                 e.printStackTrace();
+                                processingPreview.setIsActive(false);
                             }
                         });
-
     }
 
     private void processTextRecognitionResult(FirebaseVisionText texts) {
@@ -86,5 +110,7 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
                 }
             }
         }
+        Log.e("ALSFHHIUFHWOIF", "AFHUWHOIFHQWOIHFOIQWFJOIQWFJOJ");
+        this.processingPreview.setIsActive(false);
     }
 }

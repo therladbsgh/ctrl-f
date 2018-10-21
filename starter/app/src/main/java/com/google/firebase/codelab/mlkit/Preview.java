@@ -25,6 +25,7 @@ import com.google.firebase.ml.vision.text.FirebaseVisionText;
 import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -37,9 +38,10 @@ public class Preview implements SurfaceHolder.Callback {
     private SurfaceView surfaceView;
     private SurfaceHolder surfaceHolder;
     private Paint paint;
-    private boolean processingPreview;
+    private Canary processingPreview;
     private Activity activity;
     private OnlineAnalyzer onlineAnalyzer;
+    private int counter = 0;
 
     Preview(SurfaceView surfaceView, GraphicOverlay graphicOverlay, Activity activity) {
         this.surfaceView = surfaceView;
@@ -48,10 +50,10 @@ public class Preview implements SurfaceHolder.Callback {
         this.surfaceHolder.addCallback(this);
         this.previewIsRunning = false;
         this.cameraConfigured = false;
-        this.processingPreview = false;
+        this.processingPreview = new Canary();
         this.paint = new Paint();
         this.activity = activity;
-        this.onlineAnalyzer = new OnlineAnalyzer(graphicOverlay);
+        this.onlineAnalyzer = new OnlineAnalyzer(this.graphicOverlay, this.processingPreview);
     }
 
     @Override
@@ -68,7 +70,6 @@ public class Preview implements SurfaceHolder.Callback {
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         if (!previewIsRunning && (camera != null)) {
             try {
-
                 Camera.Parameters parameters=camera.getParameters();
                 List<String> focusModes = parameters.getSupportedFocusModes();
                 if(focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)){
@@ -83,10 +84,23 @@ public class Preview implements SurfaceHolder.Callback {
                 camera.setPreviewDisplay(holder);
                 camera.setPreviewCallback(new Camera.PreviewCallback() {
                     public void onPreviewFrame(byte[] data, Camera camera) {
-                        if (!processingPreview) {
-                            processingPreview = true;
-                            onlineAnalyzer.onPreviewFrame(data, camera);
-                            processingPreview = false;
+                        if (!processingPreview.getIsActive()) {
+                            Date d1 = new Date();
+                            Log.e("AAAAA", "AAAAAAAAAAAAAAAAAA" + counter);
+                            Log.e("EEEEEEEEEEEEEEEEEEEEE", new StringBuilder().append(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()).toString());
+                            processingPreview.setIsActive(true);
+                            try {
+                                onlineAnalyzer.onPreviewFrame(data, camera);
+                            } catch (Exception e) {
+                                Log.e("CCCCC", "CCCCCCCCCCCCCCCCCC");
+                                Log.e("CCCCC", e.toString());
+
+                            }
+                            Log.e("BBBBB", "BBBBBBBBBBBBBBBBBBBBBBB" + counter);
+                            Log.e("EEEEEEEEEEEEEEEEEEEEE", new StringBuilder().append(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()).toString());
+                            counter++;
+                            Date d2 = new Date();
+                            Log.e("BBBBBBB", "" + (d2.getTime()-d1.getTime())/1000.0);
                         }
                     }
                 });
