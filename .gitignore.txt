@@ -1,0 +1,2 @@
+starter/.gradle/
+starter/.idea/

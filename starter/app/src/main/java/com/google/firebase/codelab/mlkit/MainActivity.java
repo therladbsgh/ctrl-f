@@ -15,6 +15,7 @@
 package com.google.firebase.codelab.mlkit;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -57,6 +58,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import com.google.firebase.codelab.mlkit.Preview;
+
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     private static final String TAG = "MainActivity";
     private ImageView mImageView;
@@ -75,6 +78,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_CODE_CAMERA_PERMISSION = 101;
 
+    private Preview preview;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,6 +92,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mCloudButton = findViewById(R.id.button_cloud_text);
         requestNeededPermission();
 
+        preview = new Preview(surfaceView);
+
         mGraphicOverlay = findViewById(R.id.graphic_overlay);
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,11 +104,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mCloudButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                if (cameraIntent.resolveActivity(getPackageManager()) != null){
-                    startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE);
-
-                }
+            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            if (cameraIntent.resolveActivity(getPackageManager()) != null){
+                startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE);
+            }
             }
         });
         Spinner dropdown = findViewById(R.id.spinner);
@@ -110,6 +116,21 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 .simple_spinner_dropdown_item, items);
         dropdown.setAdapter(adapter);
         dropdown.setOnItemSelectedListener(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            preview.surfaceCreated(surfaceView.getHolder());
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        preview.surfaceDestroyed(surfaceView.getHolder());
+        super.onPause();
     }
 
     @Override
@@ -130,9 +151,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
 
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CAMERA},
-                    REQUEST_CODE_CAMERA_PERMISSION);
-        } else {
+                new String[]{Manifest.permission.CAMERA},
+                REQUEST_CODE_CAMERA_PERMISSION);
         }
     }
 
@@ -146,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                     Toast.makeText(MainActivity.this, "CAMERA perm granted", Toast.LENGTH_SHORT).show();
+                    preview.surfaceCreated(surfaceView.getHolder());
 
                 } else {
                     Toast.makeText(MainActivity.this, "CAMERA perm NOT granted", Toast.LENGTH_SHORT).show();
@@ -156,63 +177,50 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     private void runTextRecognition() {
-            FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(mSelectedImage);
-            FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
-                    .getOnDeviceTextRecognizer();
-            mButton.setEnabled(false);
-            detector.processImage(image)
-                    .addOnSuccessListener(
-                            new OnSuccessListener<FirebaseVisionText>() {
-                                @Override
-                                public void onSuccess(FirebaseVisionText texts) {
-                                    mButton.setEnabled(true);
-                                    processTextRecognitionResult(texts);
-                                }
-                            })
-                    .addOnFailureListener(
-                            new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    // Task failed with an exception
-                                    mButton.setEnabled(true);
-                                    e.printStackTrace();
-                                }
-                            });
-
-        }
-
-
-//    private void processTextRecognitionResult(FirebaseVisionText texts) {
-//        // TODO: Add your code here to process the on-device text recognition results.
-//    }
-        private void processTextRecognitionResult(FirebaseVisionText texts) {
-            List<FirebaseVisionText.TextBlock> blocks = texts.getTextBlocks();
-            if (blocks.size() == 0) {
-                showToast("No text found");
-                return;
-            }
-            mGraphicOverlay.clear();
-            for (int i = 0; i < blocks.size(); i++) {
-                List<FirebaseVisionText.Line> lines = blocks.get(i).getLines();
-                for (int j = 0; j < lines.size(); j++) {
-                    List<FirebaseVisionText.Element> elements = lines.get(j).getElements();
-                    for (int k = 0; k < elements.size(); k++) {
-                        Graphic textGraphic = new TextGraphic(mGraphicOverlay, elements.get(k));
-                        mGraphicOverlay.add(textGraphic);
-
+        FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(mSelectedImage);
+        FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
+            .getOnDeviceTextRecognizer();
+        mButton.setEnabled(false);
+        detector.processImage(image)
+            .addOnSuccessListener(
+                new OnSuccessListener<FirebaseVisionText>() {
+                    @Override
+                    public void onSuccess(FirebaseVisionText texts) {
+                    mButton.setEnabled(true);
+                    processTextRecognitionResult(texts);
                     }
-                }
-            }
+                })
+            .addOnFailureListener(
+                new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                    // Task failed with an exception
+                    mButton.setEnabled(true);
+                    e.printStackTrace();
+                    }
+                });
 
-        }
-
-
-    private void runCloudTextRecognition() {
-        // TODO: Add your code here to run cloud text recognition.
     }
 
-    private void processCloudTextRecognitionResult(FirebaseVisionDocumentText text) {
-        // TODO: Add your code here to process the cloud text recognition results.
+    private void processTextRecognitionResult(FirebaseVisionText texts) {
+        List<FirebaseVisionText.TextBlock> blocks = texts.getTextBlocks();
+        if (blocks.size() == 0) {
+            showToast("No text found");
+            return;
+        }
+        mGraphicOverlay.clear();
+        for (int i = 0; i < blocks.size(); i++) {
+            List<FirebaseVisionText.Line> lines = blocks.get(i).getLines();
+            for (int j = 0; j < lines.size(); j++) {
+                List<FirebaseVisionText.Element> elements = lines.get(j).getElements();
+                for (int k = 0; k < elements.size(); k++) {
+                    Graphic textGraphic = new TextGraphic(mGraphicOverlay, elements.get(k));
+                    mGraphicOverlay.add(textGraphic);
+
+                }
+            }
+        }
+
     }
 
     private void showToast(String message) {
@@ -321,58 +329,4 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
         return bitmap;
     }
-//
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//
-//
-//        camera = Camera.open();
-//        Camera.Parameters parameters = camera.getParameters();
-//        parameters.setPictureFormat(ImageFormat.JPEG);
-//        camera.setParameters(parameters);
-//
-//
-//        camera.startPreview();
-//        holder = surfaceView.getHolder();
-//        holder.addCallback(this);
-//        camera.setPreviewCallback(new Camera.PreviewCallback() {
-//            public void onPreviewFrame(byte[] data, Camera camera) {
-//                // You could apply some pixel operations directly here.
-//                Log.d("Camera", "Camera image aquired");
-//            }
-//        });
-//    }
-//    @Override
-//    public void surfaceCreated(SurfaceHolder holder) {
-//        try {
-//            camera.setPreviewDisplay(holder);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        camera.startPreview();
-//
-//    }
-//
-//    @Override
-//    protected void onPause() {
-//        super.onPause();
-//        if (camera != null) {
-//            camera.stopPreview();
-//            camera.release();
-//            camera = null;
-//        }
-//    }
-//
-//    @Override
-//    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-//    }
-//
-//    @Override
-//    public void surfaceDestroyed(SurfaceHolder holder) {
-//    }
-
-
-
-
 }
