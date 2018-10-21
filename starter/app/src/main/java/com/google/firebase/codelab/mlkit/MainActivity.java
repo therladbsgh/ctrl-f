@@ -40,6 +40,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -61,11 +62,11 @@ import java.util.List;
 
 import com.google.firebase.codelab.mlkit.Preview;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private ImageView mImageView;
     private Button mButton;
-    private Button mCloudButton;
+    private EditText mTextInputField;
     private Bitmap mSelectedImage;
     private GraphicOverlay mGraphicOverlay;
 
@@ -84,38 +85,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        mImageView = findViewById(R.id.image_view);
         surfaceView =  findViewById(R.id.surface_view);
 
-        mButton = findViewById(R.id.button_text);
-        mCloudButton = findViewById(R.id.button_cloud_text);
+        mTextInputField = findViewById(R.id.text_input_field);
         requestNeededPermission();
 
         mGraphicOverlay = findViewById(R.id.graphic_overlay);
-        preview = new Preview(surfaceView, mGraphicOverlay, this);
-
-        mButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                runTextRecognition();
-            }
-        });
-        mCloudButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            if (cameraIntent.resolveActivity(getPackageManager()) != null){
-                startActivityForResult(cameraIntent, REQUEST_IMAGE_CAPTURE);
-            }
-            }
-        });
-        Spinner dropdown = findViewById(R.id.spinner);
-        String[] items = new String[]{"Image 1", "Image 2", "Image 3"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout
-                .simple_spinner_dropdown_item, items);
-        dropdown.setAdapter(adapter);
-        dropdown.setOnItemSelectedListener(this);
+        preview = new Preview(surfaceView, mGraphicOverlay, this, mTextInputField);
     }
 
     @Override
@@ -176,55 +152,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
-    private void runTextRecognition() {
-        FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(mSelectedImage);
-        FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
-            .getOnDeviceTextRecognizer();
-        mButton.setEnabled(false);
-        detector.processImage(image)
-            .addOnSuccessListener(
-                new OnSuccessListener<FirebaseVisionText>() {
-                    @Override
-                    public void onSuccess(FirebaseVisionText texts) {
-                    mButton.setEnabled(true);
-                    processTextRecognitionResult(texts);
-                    }
-                })
-            .addOnFailureListener(
-                new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                    // Task failed with an exception
-                    mButton.setEnabled(true);
-                    e.printStackTrace();
-                    }
-                });
-
-    }
-
-    private void processTextRecognitionResult(FirebaseVisionText texts) {
-        List<FirebaseVisionText.TextBlock> blocks = texts.getTextBlocks();
-        if (blocks.size() == 0) {
-            showToast("No text found");
-            return;
-        }
-        mGraphicOverlay.clear();
-        for (int i = 0; i < blocks.size(); i++) {
-            List<FirebaseVisionText.Line> lines = blocks.get(i).getLines();
-            for (int j = 0; j < lines.size(); j++) {
-                List<FirebaseVisionText.Element> elements = lines.get(j).getElements();
-                for (int k = 0; k < elements.size(); k++) {
-                    Graphic textGraphic = new TextGraphic(mGraphicOverlay, elements.get(k));
-                    mGraphicOverlay.add(textGraphic);
-
-                }
-            }
-        }
-    }
-
     private void showToast(String message) {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
+<<<<<<< HEAD
 
     // Functions for loading images from app assets.
 
@@ -384,4 +315,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 break;
         }
     }
+=======
+>>>>>>> d226600c15e1ccd40192b1ec64a840c3f7224c76
 }
