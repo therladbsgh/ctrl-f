@@ -14,6 +14,7 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.SurfaceHolder;
+import android.widget.EditText;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -39,21 +40,19 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
     private GraphicOverlay graphicOverlay;
     private BitmapFactory.Options options;
     private Canary processingPreview;
+    private EditText textInputField;
 
-    OnlineAnalyzer(GraphicOverlay graphicOverlay, Canary processingPreview) {
+    OnlineAnalyzer(GraphicOverlay graphicOverlay, Canary processingPreview,
+                   EditText textInputField) {
         this.graphicOverlay = graphicOverlay;
         options = new BitmapFactory.Options();
         options.inPurgeable = true;
         options.inInputShareable = true;
         this.processingPreview = processingPreview;
+        this.textInputField = textInputField;
     }
 
     public void onPreviewFrame(byte[] data, Camera camera) {
-//        try {
-//            TimeUnit.SECONDS.sleep(1);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
         Camera.Parameters parameters=camera.getParameters();
         int width = parameters.getPreviewSize().width;
         int height = parameters.getPreviewSize().height;
@@ -71,6 +70,10 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
     }
 
     private void runTextRecognition(Bitmap bitmapImage) {
+        if (textInputField.getText() != null) {
+            Log.e("111111111111111111", textInputField.getText().toString());
+        }
+
         FirebaseVisionImage image = FirebaseVisionImage.fromBitmap(bitmapImage);
         FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
                 .getOnDeviceTextRecognizer();
@@ -95,6 +98,10 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
     }
 
     private void processTextRecognitionResult(FirebaseVisionText texts) {
+        if (textInputField.getText() != null) {
+            Log.e("122222222222", textInputField.getText().toString());
+        }
+
         List<FirebaseVisionText.TextBlock> blocks = texts.getTextBlocks();
         if (blocks.size() == 0) {
             return;
@@ -110,7 +117,5 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
                 }
             }
         }
-        Log.e("ALSFHHIUFHWOIF", "AFHUWHOIFHQWOIHFOIQWFJOIQWFJOJ");
-        this.processingPreview.setIsActive(false);
     }
 }

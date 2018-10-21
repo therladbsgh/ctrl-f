@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -34,6 +35,7 @@ public class Preview implements SurfaceHolder.Callback {
     private boolean cameraConfigured;
     private Camera camera;
 
+    private EditText textInputField;
     private GraphicOverlay graphicOverlay;
     private SurfaceView surfaceView;
     private SurfaceHolder surfaceHolder;
@@ -43,7 +45,8 @@ public class Preview implements SurfaceHolder.Callback {
     private OnlineAnalyzer onlineAnalyzer;
     private int counter = 0;
 
-    Preview(SurfaceView surfaceView, GraphicOverlay graphicOverlay, Activity activity) {
+    Preview(SurfaceView surfaceView, GraphicOverlay graphicOverlay, Activity activity,
+            EditText textInputField) {
         this.surfaceView = surfaceView;
         this.graphicOverlay = graphicOverlay;
         this.surfaceHolder = surfaceView.getHolder();
@@ -53,7 +56,9 @@ public class Preview implements SurfaceHolder.Callback {
         this.processingPreview = new Canary();
         this.paint = new Paint();
         this.activity = activity;
-        this.onlineAnalyzer = new OnlineAnalyzer(this.graphicOverlay, this.processingPreview);
+        this.textInputField = textInputField;
+        this.onlineAnalyzer = new OnlineAnalyzer(this.graphicOverlay, this.processingPreview,
+                this.textInputField);
     }
 
     @Override
@@ -94,6 +99,7 @@ public class Preview implements SurfaceHolder.Callback {
                             } catch (Exception e) {
                                 Log.e("CCCCC", "CCCCCCCCCCCCCCCCCC");
                                 Log.e("CCCCC", e.toString());
+                                processingPreview.setIsActive(false);
 
                             }
                             Log.e("BBBBB", "BBBBBBBBBBBBBBBBBBBBBBB" + counter);
