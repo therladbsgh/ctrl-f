@@ -70,6 +70,6 @@ public class TextGraphic extends Graphic {
         canvas.drawRect(rect, rectPaint);
 
         // Renders the text at the bottom of the box.
-        canvas.drawText(element.getText(), rect.left, rect.bottom, textPaint);
+        canvas.drawText("", rect.left, rect.bottom - 5, textPaint);
     }
 }

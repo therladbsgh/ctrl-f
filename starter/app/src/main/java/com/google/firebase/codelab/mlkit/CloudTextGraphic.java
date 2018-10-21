@@ -68,13 +68,13 @@ public class CloudTextGraphic extends Graphic {
         float x = overlay.getWidth() / 4.0f;
         float y = overlay.getHeight() / 4.0f;
 
-        StringBuilder wordStr = new StringBuilder();
+//        StringBuilder wordStr = new StringBuilder();
         Rect wordRect = word.getBoundingBox();
         canvas.drawRect(wordRect, rectPaint);
-        List<FirebaseVisionDocumentText.Symbol> symbols = word.getSymbols();
-        for (int m = 0; m < symbols.size(); m++) {
+//        List<FirebaseVisionDocumentText.Symbol> symbols = word.getSymbols();
+        /*for (int m = 0; m < symbols.size(); m++) {
             wordStr.append(symbols.get(m).getText());
-        }
-        canvas.drawText(wordStr.toString(), wordRect.left, wordRect.bottom, textPaint);
+        }*/
+        canvas.drawText("", wordRect.left, wordRect.bottom, textPaint);
     }
 }

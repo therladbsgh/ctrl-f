@@ -49,11 +49,6 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
     }
 
     public void onPreviewFrame(byte[] data, Camera camera) {
-//        try {
-//            TimeUnit.SECONDS.sleep(1);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
         Camera.Parameters parameters=camera.getParameters();
         int width = parameters.getPreviewSize().width;
         int height = parameters.getPreviewSize().height;
@@ -95,6 +90,7 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
     }
 
     private void processTextRecognitionResult(FirebaseVisionText texts) {
+        String toSearch = "Sodium";
         List<FirebaseVisionText.TextBlock> blocks = texts.getTextBlocks();
         if (blocks.size() == 0) {
             return;
@@ -105,12 +101,17 @@ public class OnlineAnalyzer implements Camera.PreviewCallback {
             for (int j = 0; j < lines.size(); j++) {
                 List<FirebaseVisionText.Element> elements = lines.get(j).getElements();
                 for (int k = 0; k < elements.size(); k++) {
-                    GraphicOverlay.Graphic textGraphic = new TextGraphic(graphicOverlay, elements.get(k));
-                    graphicOverlay.add(textGraphic);
+                    FirebaseVisionText.Element ele = elements.get(k);
+                    if (ele.getText().equals(toSearch)) {
+                        GraphicOverlay.Graphic textGraphic = new TextGraphic(graphicOverlay, ele);
+                        graphicOverlay.add(textGraphic);
+                    }
                 }
             }
         }
-        Log.e("ALSFHHIUFHWOIF", "AFHUWHOIFHQWOIHFOIQWFJOIQWFJOJ");
+
+        // Sodium
+//        Log.e("ALSFHHIUFHWOIF", "AFHUWHOIFHQWOIHFOIQWFJOIQWFJOJ");
         this.processingPreview.setIsActive(false);
     }
 }

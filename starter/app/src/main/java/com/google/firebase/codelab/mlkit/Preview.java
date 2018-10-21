@@ -113,10 +113,6 @@ public class Preview implements SurfaceHolder.Callback {
         }
     }
 
-    private void showToast(String message) {
-        Toast.makeText(this.activity.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-    }
-
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         if (previewIsRunning && (camera != null)) {
