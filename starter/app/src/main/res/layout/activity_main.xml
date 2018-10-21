@@ -28,7 +28,6 @@
         app:layout_constraintRight_toRightOf="parent"
         android:contentDescription="Select image for text recognition" />
 
-
     <com.google.firebase.codelab.mlkit.GraphicOverlay
         android:id="@+id/graphic_overlay"
         android:layout_width="fill_parent"

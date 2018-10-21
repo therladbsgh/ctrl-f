@@ -67,9 +67,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private Button mCloudButton;
     private Bitmap mSelectedImage;
     private GraphicOverlay mGraphicOverlay;
-    // Max width (portrait mode)
+
     private Integer mImageMaxWidth;
-    // Max height (portrait mode)
     private Integer mImageMaxHeight;
 
     private Camera camera;
@@ -92,9 +91,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         mCloudButton = findViewById(R.id.button_cloud_text);
         requestNeededPermission();
 
-        preview = new Preview(surfaceView);
-
         mGraphicOverlay = findViewById(R.id.graphic_overlay);
+        preview = new Preview(surfaceView, mGraphicOverlay, this);
+
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -220,7 +219,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 }
             }
         }
-
     }
 
     private void showToast(String message) {

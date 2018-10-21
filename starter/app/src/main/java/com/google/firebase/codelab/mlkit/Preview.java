@@ -1,13 +1,30 @@
 package com.google.firebase.codelab.mlkit;
 
+import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.ml.vision.FirebaseVision;
+import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+import com.google.firebase.ml.vision.text.FirebaseVisionText;
+import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
+
+import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Random;
 
@@ -16,15 +33,25 @@ public class Preview implements SurfaceHolder.Callback {
     private boolean cameraConfigured;
     private Camera camera;
 
+    private GraphicOverlay graphicOverlay;
     private SurfaceView surfaceView;
     private SurfaceHolder surfaceHolder;
+    private Paint paint;
+    private boolean processingPreview;
+    private Activity activity;
+    private OnlineAnalyzer onlineAnalyzer;
 
-    Preview(SurfaceView surfaceView) {
+    Preview(SurfaceView surfaceView, GraphicOverlay graphicOverlay, Activity activity) {
         this.surfaceView = surfaceView;
+        this.graphicOverlay = graphicOverlay;
         this.surfaceHolder = surfaceView.getHolder();
         this.surfaceHolder.addCallback(this);
         this.previewIsRunning = false;
         this.cameraConfigured = false;
+        this.processingPreview = false;
+        this.paint = new Paint();
+        this.activity = activity;
+        this.onlineAnalyzer = new OnlineAnalyzer(graphicOverlay);
     }
 
     @Override
@@ -41,7 +68,6 @@ public class Preview implements SurfaceHolder.Callback {
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         if (!previewIsRunning && (camera != null)) {
             try {
-                // draw(holder);
 
                 Camera.Parameters parameters=camera.getParameters();
                 List<String> focusModes = parameters.getSupportedFocusModes();
@@ -57,8 +83,11 @@ public class Preview implements SurfaceHolder.Callback {
                 camera.setPreviewDisplay(holder);
                 camera.setPreviewCallback(new Camera.PreviewCallback() {
                     public void onPreviewFrame(byte[] data, Camera camera) {
-                        // You could apply some pixel operations directly here.
-                        Log.d("Camera", "Camera image aquired");
+                        if (!processingPreview) {
+                            processingPreview = true;
+                            onlineAnalyzer.onPreviewFrame(data, camera);
+                            processingPreview = false;
+                        }
                     }
                 });
                 camera.startPreview();
@@ -70,35 +99,8 @@ public class Preview implements SurfaceHolder.Callback {
         }
     }
 
-    private void draw(SurfaceHolder holder) {
-        Canvas canvas = holder.lockCanvas();
-        if (canvas != null) {
-            Random random = new Random();
-            canvas.drawRGB(255, 128, 128);
-            holder.unlockCanvasAndPost(canvas);
-        }
-    }
-
-    private Camera.Size getBestPreviewSize(int width, int height,
-                                           Camera.Parameters parameters) {
-        Camera.Size result=null;
-
-        for (Camera.Size size : parameters.getSupportedPreviewSizes()) {
-            if (size.width<=width && size.height<=height) {
-                if (result==null) {
-                    result=size;
-                }
-                else {
-                    int resultArea=result.width*result.height;
-                    int newArea=size.width*size.height;
-
-                    if (newArea>resultArea) {
-                        result=size;
-                    }
-                }
-            }
-        }
-        return(result);
+    private void showToast(String message) {
+        Toast.makeText(this.activity.getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
     @Override
